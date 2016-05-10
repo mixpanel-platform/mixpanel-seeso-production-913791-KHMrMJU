@@ -7,9 +7,64 @@
     <script src="https://cdn.mxpnl.com/libs/mixpanel-platform/build/mixpanel-platform.v0.latest.min.js"></script>
   </head>
   <body class="mixpanel-platform-body">
-    <h1>Hello, World!</h1>
+    <h1>Quick 'Minute' Segmentation</h1>
+    Select an Event + Date Range and you'll get minute-by-minute stats.<br>
+    Date Range will only be 1 day wide.<br>
+    
+    <div id='datePicker'></div>
+    <div id='eventSelect'></div>
+    
+    <div id='propertySelect'></div>
+    <div id='eventPrint'></div>
+    <pre id='output'></pre>
     <script>
-      // Run queries and display results here
+      var eventSelection
+      var propertySelection = undefined
+      var params = {unit: 'minute', from: new Date(), to: new Date()}
+      
+      var datePick = $('#datePicker').MPDatepicker().val({from: new Date(), to: new Date()})
+      
+      var eventSelect = $('#eventSelect').MPEventSelect();
+      eventSelect.on('change', function(e, selection){
+        eventSelection = selection
+        runQuery();
+      })
+      
+      datePick.on('change', function(e, dates) {
+        if (eventSelection) {
+        params['from'] = dates.from
+        params['to'] = dates.from
+        datePick.MPDatepicker().val({from: dates.from, to: dates.from})
+        runQuery();
+          
+        }
+      })
+      
+      function sortObject(o) {
+        var sorted = {},
+        key, a = [];
+        for (key in o) {
+            if (o.hasOwnProperty(key)) {
+                a.push(key);
+            }
+        }
+        a.sort();
+    
+        for (key = 0; key < a.length; key++) {
+            sorted[a[key]] = o[a[key]];
+        }
+        return sorted;
+      }
+      
+      function runQuery() {
+        MP.api.segment(eventSelection, propertySelection, params).done(function(results){
+          console.log(results.values()[eventSelection]);
+          sortedObj = sortObject(results.values()[eventSelection])
+          document.getElementById("eventPrint").innerHTML = eventSelection;
+          document.getElementById("output").innerHTML = JSON.stringify(sortedObj, undefined, 2);
+          
+        })
+      }
     </script>
   </body>
 </html>
